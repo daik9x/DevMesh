@@ -839,6 +839,11 @@ public class RemoteServer {
                             "waitMs", e.waitMs()
                     )));
                 }
+                case AgentEvent.CheckpointCreated e -> broadcast(Map.of("type", "checkpoint_created", "data", Map.of(
+                    "checkpointId", e.checkpointId(), "sessionId", e.sessionId(), "taskId", e.taskId(),
+                    "boundary", e.boundary(), "status", e.status())));
+                case AgentEvent.RecoveryBlocked e -> broadcast(Map.of("type", "recovery_blocked", "data", Map.of(
+                    "sessionId", e.sessionId(), "checkpointId", e.checkpointId(), "reason", e.reason())));
             }
         }
     }

@@ -1849,6 +1849,10 @@ public class DevMeshModel implements Model {
                     if (e.waitMs() > 0) msg += " (waiting %dms)".formatted(e.waitMs());
                     chatMessages.add(new ChatMessage("system", msg));
                 }
+                case AgentEvent.CheckpointCreated e ->
+                    chatMessages.add(new ChatMessage("system", "Checkpoint saved: " + e.checkpointId()));
+                case AgentEvent.RecoveryBlocked e ->
+                    chatMessages.add(new ChatMessage("error", "Recovery blocked: " + e.reason()));
                 case AgentEvent.PermissionRequestEvent e -> {
                     permDialog = true;
                     permToolName = e.toolName();

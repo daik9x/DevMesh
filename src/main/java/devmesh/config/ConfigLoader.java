@@ -116,6 +116,9 @@ public class ConfigLoader {
                 if (override.getSandbox().isNetworkEnabled()) base.getSandbox().setNetworkEnabled(true);
             }
         }
+        if (override.getCheckpoint() != null) {
+            base.setCheckpoint(override.getCheckpoint());
+        }
         if (override.isEnableCoordinatorMode()) {
             base.setEnableCoordinatorMode(true);
         }

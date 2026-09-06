@@ -50,6 +50,11 @@ public sealed interface AgentEvent {
 
     record RetryEvent(String reason, long waitMs) implements AgentEvent {}
 
+    record CheckpointCreated(String checkpointId, String sessionId, String taskId,
+                             String boundary, String status) implements AgentEvent {}
+
+    record RecoveryBlocked(String sessionId, String checkpointId, String reason) implements AgentEvent {}
+
     record PermissionRequestEvent(String toolName, String description,
                                   CompletableFuture<PermissionResponse> future) implements AgentEvent {}
 

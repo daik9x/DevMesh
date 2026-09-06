@@ -12,6 +12,7 @@ public class AppConfig {
 
 
     private SandboxYamlConfig sandbox;
+    private CheckpointConfig checkpoint;
 
     private boolean enableCoordinatorMode;
 
@@ -35,6 +36,9 @@ public class AppConfig {
     public boolean isSandboxEnabled() { return sandbox != null && sandbox.isEnabled(); }
     public boolean isSandboxAutoAllow() { return sandbox == null || sandbox.isAutoAllow(); }
     public boolean isSandboxNetworkEnabled() { return sandbox != null && sandbox.isNetworkEnabled(); }
+
+    public CheckpointConfig getCheckpoint() { return checkpoint; }
+    public void setCheckpoint(CheckpointConfig checkpoint) { this.checkpoint = checkpoint; }
 
     public boolean isEnableCoordinatorMode() { return enableCoordinatorMode; }
     public void setEnableCoordinatorMode(boolean enableCoordinatorMode) { this.enableCoordinatorMode = enableCoordinatorMode; }

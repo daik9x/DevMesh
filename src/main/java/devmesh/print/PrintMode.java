@@ -387,6 +387,12 @@ public class PrintMode {
                 case AgentEvent.RetryEvent e -> {
 
                 }
+                case AgentEvent.CheckpointCreated e -> {
+
+                }
+                case AgentEvent.RecoveryBlocked e -> {
+
+                }
             }
         }
     }

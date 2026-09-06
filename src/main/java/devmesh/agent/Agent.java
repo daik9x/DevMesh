@@ -34,6 +34,10 @@ import devmesh.tool.select.ToolSelector;
 import devmesh.repository.AnalysisDepth;
 import devmesh.repository.RepositoryIntelligence;
 import devmesh.repository.RepositoryMap;
+import devmesh.checkpoint.Checkpoint;
+import devmesh.checkpoint.CheckpointManager;
+import devmesh.checkpoint.LocalCheckpointStore;
+import devmesh.checkpoint.RepositoryRecoveryState;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -86,6 +90,8 @@ public class Agent {
     private ContextControlPlane contextControlPlane;
     private RepositoryMap repositoryMap;
     private ToolSelector toolSelector;
+    private String taskId;
+    private CheckpointManager checkpointManager;
 
     /**
      * Per-conversation-thread tool-result decision log. Carries across
@@ -134,6 +140,8 @@ public class Agent {
     }
     public void setSessionId(String sessionId) { this.sessionId = sessionId; }
     public String getSessionId() { return sessionId; }
+    public void setTaskId(String taskId) { this.taskId = taskId; }
+    public String getTaskId() { return taskId; }
     public void setNotificationFn(java.util.function.Supplier<List<String>> fn) { this.notificationFn = fn; }
 
     public void setToolNameFilter(java.util.function.Predicate<String> filter) { this.toolNameFilter = filter; }
@@ -171,6 +179,9 @@ public class Agent {
             .analyze(AnalysisDepth.STANDARD);
         toolSelector = new ToolSelector(registry, Path.of(workDir == null ? "." : workDir));
         refreshContextState(conv);
+        String effectiveTaskId = taskId == null || taskId.isBlank() ? sessionId == null ? "task" : sessionId : taskId;
+        checkpointManager = new CheckpointManager(new LocalCheckpointStore(Path.of(workDir == null ? "." : workDir)));
+        saveCheckpoint(queue, effectiveTaskId, "TASK_STARTED", 0, "agent_loop_started");
 
         int totalInput = 0, totalOutput = 0;
         int outputRecoveries = 0;
@@ -509,6 +520,7 @@ public class Agent {
                     String summary = text.length() > 60 ? text.substring(0, 60) + "..." : text.toString();
                     fileHistory.makeSnapshot(conv.size(), summary);
                 }
+                saveCheckpoint(queue, effectiveTaskId, "TASK_COMPLETED", iteration, "assistant_completed");
 
                 // (agent.go emits only LoopComplete here). The TUI's TurnComplete
                 // handler flushes+clears streamBuf without persisting; if we emitted
@@ -532,6 +544,7 @@ public class Agent {
                     .map(r -> new ToolResultBlock(r.toolId(), r.output(), r.isError()))
                     .toList();
             conv.addToolResultsMessage(resultBlocks);
+            saveCheckpoint(queue, effectiveTaskId, "TOOL_COMPLETED", iteration, "tool_batch_completed");
 
 
 
@@ -550,6 +563,7 @@ public class Agent {
             boolean exitPlanCalled = toolCalls.stream()
                     .anyMatch(tc -> "ExitPlanMode".equals(tc.toolName));
             if (exitPlanCalled) {
+                saveCheckpoint(queue, effectiveTaskId, "TASK_COMPLETED", iteration, "plan_exited");
                 putSafe(queue, new AgentEvent.TurnComplete(iteration));
                 putSafe(queue, new AgentEvent.LoopComplete(iteration));
                 loopCompleted = true;
@@ -557,9 +571,11 @@ public class Agent {
             }
 
             putSafe(queue, new AgentEvent.TurnComplete(iteration));
+            saveCheckpoint(queue, effectiveTaskId, "TURN_COMPLETED", iteration, "turn_completed");
         }
         } catch (RuntimeException e) {
             tracer.markError(e.getClass().getSimpleName());
+            saveCheckpoint(queue, effectiveTaskId, "TASK_FAILED", 0, e.getClass().getSimpleName());
             throw e;
         } finally {
             if (!loopCompleted) {
@@ -567,6 +583,28 @@ public class Agent {
             }
             tracer.close();
         }
+    }
+
+    private void saveCheckpoint(BlockingQueue<AgentEvent> queue, String effectiveTaskId,
+                                String boundary, int iteration, String reason) {
+        if (checkpointManager == null || sessionId == null || sessionId.isBlank()) return;
+        var execution = new LinkedHashMap<String, Object>();
+        execution.put("boundary", boundary); execution.put("iteration", iteration); execution.put("reason", reason);
+        execution.put("workDir", workDir == null ? System.getProperty("user.dir") : workDir);
+        var repository = new LinkedHashMap<String, Object>();
+        repository.put("root", workDir == null ? System.getProperty("user.dir") : workDir);
+        if (repositoryMap != null) { repository.put("projectType", repositoryMap.projectType()); repository.put("importantFiles", repositoryMap.importantFiles()); }
+        var context = new LinkedHashMap<String, Object>();
+        if (contextControlPlane != null) { context.put("snapshot", contextControlPlane.snapshot()); context.put("compactions", contextControlPlane.compactions()); }
+        var todo = new LinkedHashMap<String, Object>();
+        todo.put("tasks", new TaskList("default", workDir == null ? System.getProperty("user.dir") : workDir).list());
+        Checkpoint parent = checkpointManager.latestValid(sessionId).orElse(null);
+        var draft = new Checkpoint(java.util.UUID.randomUUID().toString(), sessionId, effectiveTaskId,
+                parent == null ? null : parent.checkpointId(), java.time.Instant.now(), 1, Checkpoint.Status.CREATED,
+                Map.<String, Object>of("taskId", effectiveTaskId), todo, Map.<String, Object>of("phase", boundary, "iteration", iteration), context,
+                repository, Map.of(), Map.of(), Map.of(), execution, Map.<String, Object>of("reason", reason), null);
+        Checkpoint saved = checkpointManager.create(draft);
+        putSafe(queue, new AgentEvent.CheckpointCreated(saved.checkpointId(), saved.sessionId(), saved.taskId(), boundary, saved.status().name()));
     }
 
     private static int estimateSchemaTokens(List<Map<String, Object>> schemas) {
