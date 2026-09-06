@@ -39,7 +39,7 @@ class EvaluationFrameworkTest {
     @Test
     void statisticsAndSecretScannerAreDeterministicAndMasked() throws Exception {
         var root = Files.createTempDirectory("evaluation-secrets");
-        Files.writeString(root.resolve("config.txt"), "OPENROUTER_API_KEY=sk-or-v1-thisisatestsecretvalue");
+        Files.writeString(root.resolve("config.txt"), "OPENROUTER_API_KEY=" + "sk-or-v1-" + "thisisatestsecretvalue");
         assertEquals(1, new SecretScanner().scan(root).size());
         var metrics = BenchmarkMetrics.empty(true, 1);
         var result = new BenchmarkResult("one", BenchmarkStatus.PASS, "", metrics, 1, ScoreCalculator.dimensions(metrics));

@@ -66,4 +66,17 @@ class CheckpointStoreTest {
         store.save(missing);
         assertEquals(RecoveryDecision.ABORT, new RecoveryManager(new CheckpointManager(store)).decide("missing-session").decision());
     }
+
+    @Test
+    void rejectsPathTraversalIdentifiers() throws Exception {
+        var root = Files.createTempDirectory("devmesh-checkpoint");
+        var store = new LocalCheckpointStore(root);
+        assertThrows(CheckpointStoreException.class,
+                () -> store.save(Checkpoint.draft("../escape", "task", null, Map.of())));
+        assertThrows(CheckpointStoreException.class,
+                () -> store.save(new Checkpoint("../escape", "session", "task", null, null, 1,
+                        Checkpoint.Status.CREATED, Map.of(), Map.of(), Map.of(), Map.of(), Map.of(),
+                        Map.of(), Map.of(), Map.of(), Map.of(), Map.of(), null)));
+        assertFalse(Files.exists(root.getParent().resolve("escape.json")));
+    }
 }

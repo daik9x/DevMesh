@@ -73,9 +73,15 @@ public class StreamingExecutor {
                     var futures = batch.calls.stream()
                             .map(call -> executor.submit(() -> executeSingle(call)))
                             .toList();
-                    for (var future : futures) {
+                    for (int i = 0; i < futures.size(); i++) {
+                        var future = futures.get(i);
                         try { results.add(future.get()); }
-                        catch (Exception ignored) {}
+                        catch (Exception e) {
+                            var call = batch.calls.get(i);
+                            String message = "Tool execution failed: " + (e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
+                            putSafe(new AgentEvent.ToolResultEvent(call.toolId(), call.toolName(), message, true, 0));
+                            results.add(new ToolExecResult(call.toolId(), message, true));
+                        }
                     }
                 }
             } else {

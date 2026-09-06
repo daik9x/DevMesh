@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,6 +51,26 @@ class SQLitePersistenceTest {
         try (var second = new SQLitePersistence(db)) {
             assertEquals("One", second.session("s1").orElseThrow().title());
             assertThrows(PersistenceException.class, () -> second.appendMessage("missing", "user", "MESSAGE", "x", null, null));
+        }
+    }
+
+    @Test
+    void serializesMessageSequencesAcrossPersistenceInstances() throws Exception {
+        var db = Files.createTempDirectory("devmesh-db").resolve("devmesh.db");
+        try (var first = new SQLitePersistence(db); var second = new SQLitePersistence(db)) {
+            first.createSession("s1", "Concurrent", db.getParent(), null, null, null);
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                var futures = new ArrayList<java.util.concurrent.Future<MessageRecord>>();
+                for (int i = 0; i < 20; i++) {
+                    var persistence = i % 2 == 0 ? first : second;
+                    futures.add(executor.submit(() -> persistence.appendMessage("s1", "user", "MESSAGE", "message", null, null)));
+                }
+                for (var future : futures) future.get();
+            }
+            var messages = first.loadMessages("s1", 100, 0);
+            assertEquals(20, messages.size());
+                assertEquals(java.util.stream.IntStream.rangeClosed(1, 20).boxed().mapToLong(Integer::longValue).boxed().toList(),
+                    messages.stream().map(MessageRecord::sequence).toList());
         }
     }
 }

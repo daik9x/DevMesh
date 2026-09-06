@@ -77,7 +77,24 @@ public final class SQLitePersistence implements PersistenceService {
     private void execute(String sql, Object... args) { transaction(c -> { try (PreparedStatement p = c.prepareStatement(sql)) { for (int i = 0; i < args.length; i++) p.setObject(i + 1, args[i]); p.executeUpdate(); } return null; }); }
     private <T> Optional<T> queryOne(String sql, SQLConsumer<PreparedStatement> binder, SQLReader<T> reader) { List<T> rows = query(sql, binder, reader); return rows.stream().findFirst(); }
     private <T> List<T> query(String sql, SQLConsumer<PreparedStatement> binder, SQLReader<T> reader) { synchronized (lock) { try (Connection c = open(); PreparedStatement p = c.prepareStatement(sql)) { binder.accept(p); try (ResultSet r = p.executeQuery()) { var out = new ArrayList<T>(); while (r.next()) out.add(reader.read(r)); return out; } } catch (SQLException e) { throw new PersistenceException("Database query failed", e); } } }
-    private <T> T transaction(SQLWork<T> work) { synchronized (lock) { try (Connection c = open()) { c.setAutoCommit(false); try { T result = work.run(c); c.commit(); return result; } catch (Exception e) { c.rollback(); if (e instanceof PersistenceException p) throw p; throw new PersistenceException("Database transaction rolled back", e); } } catch (SQLException e) { throw new PersistenceException("Database transaction failed", e); } } }
+    private <T> T transaction(SQLWork<T> work) {
+        synchronized (lock) {
+            try (Connection c = open(); Statement control = c.createStatement()) {
+                control.execute("BEGIN IMMEDIATE");
+                try {
+                    T result = work.run(c);
+                    control.execute("COMMIT");
+                    return result;
+                } catch (Exception e) {
+                    try { control.execute("ROLLBACK"); } catch (SQLException ignored) {}
+                    if (e instanceof PersistenceException p) throw p;
+                    throw new PersistenceException("Database transaction rolled back", e);
+                }
+            } catch (SQLException e) {
+                throw new PersistenceException("Database transaction failed", e);
+            }
+        }
+    }
     @FunctionalInterface private interface SQLWork<T> { T run(Connection c) throws Exception; }
     @FunctionalInterface private interface SQLConsumer<T> { void accept(T value) throws SQLException; }
     @FunctionalInterface private interface SQLReader<T> { T read(ResultSet value) throws SQLException; }

@@ -406,13 +406,24 @@ public class PermissionChecker {
 
     private boolean isPathAllowed(String pathStr) {
         try {
-            Path p = Path.of(pathStr).toAbsolutePath().normalize();
-            Path root = projectRoot.toAbsolutePath().normalize();
+            if (projectRoot == null) return false;
+            Path requested = Path.of(pathStr).toAbsolutePath().normalize();
+            Path p = Files.exists(requested)
+                    ? requested.toRealPath()
+                    : realParent(requested);
+            Path root = projectRoot.toAbsolutePath().normalize().toRealPath();
             Path tmp = Path.of("/tmp").toAbsolutePath().normalize();
-            return p.startsWith(root) || p.startsWith(tmp);
+            Path realTmp = Files.exists(tmp) ? tmp.toRealPath() : tmp;
+            return p.startsWith(root) || p.startsWith(realTmp);
         } catch (Exception e) {
-            return true;
+            return false;
         }
+    }
+
+    private static Path realParent(Path path) throws IOException {
+        Path parent = path.getParent();
+        if (parent == null) return path;
+        return parent.toRealPath().resolve(path.getFileName()).normalize();
     }
 
     private static String extractContent(String toolName, Map<String, Object> args) {

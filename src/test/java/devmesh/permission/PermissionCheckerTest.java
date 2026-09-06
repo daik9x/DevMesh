@@ -66,4 +66,25 @@ class PermissionCheckerTest {
         assertEquals(PermissionMode.Decision.ASK, result.decision(),
                 "ask rule should not be overridden by sandbox");
     }
+
+        @Test
+        void rejectsWorkspaceSymlinkEscapes(@TempDir Path tmpDir) throws IOException {
+                Path outside = Files.createTempDirectory("outside");
+                Path link = tmpDir.resolve("linked");
+                try {
+                        Files.createSymbolicLink(link, Path.of("/etc"));
+                } catch (UnsupportedOperationException | IOException e) {
+                        return;
+                }
+                Tool read = new Tool() {
+                        @Override public String name() { return "ReadFile"; }
+                        @Override public String description() { return ""; }
+                        @Override public ToolCategory category() { return ToolCategory.READ; }
+                        @Override public Map<String, Object> schema() { return Map.of(); }
+                        @Override public devmesh.tool.ToolResult execute(Map<String, Object> args) { return devmesh.tool.ToolResult.success(""); }
+                };
+                var result = new PermissionChecker(PermissionMode.DEFAULT, tmpDir)
+                                .check(read, Map.of("file_path", link.resolve("secret.txt").toString()));
+                assertNotEquals(PermissionMode.Decision.ALLOW, result.decision());
+        }
 }
