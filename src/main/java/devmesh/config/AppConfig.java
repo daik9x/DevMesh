@@ -13,6 +13,7 @@ public class AppConfig {
 
     private SandboxYamlConfig sandbox;
     private CheckpointConfig checkpoint;
+    private PersistenceConfig persistence;
 
     private boolean enableCoordinatorMode;
 
@@ -39,6 +40,8 @@ public class AppConfig {
 
     public CheckpointConfig getCheckpoint() { return checkpoint; }
     public void setCheckpoint(CheckpointConfig checkpoint) { this.checkpoint = checkpoint; }
+    public PersistenceConfig getPersistence() { return persistence; }
+    public void setPersistence(PersistenceConfig persistence) { this.persistence = persistence; }
 
     public boolean isEnableCoordinatorMode() { return enableCoordinatorMode; }
     public void setEnableCoordinatorMode(boolean enableCoordinatorMode) { this.enableCoordinatorMode = enableCoordinatorMode; }

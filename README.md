@@ -149,6 +149,28 @@ cd DevMesh
 
 ### Create local configuration
 
+The fastest way to initialize a workspace is the offline `init` command. It
+creates `.devmesh/config.yaml` and the local session, task, checkpoint, and
+context directories without contacting a provider:
+
+```bash
+./gradlew run --args="init"
+```
+
+For an installed launcher:
+
+```bash
+devmesh init
+```
+
+Use `--workspace <path>` to initialize another project and `--force` only when
+you intentionally want to replace an existing `.devmesh/config.yaml`.
+
+The generated configuration uses OpenRouter with the default evaluation model
+and reads credentials from `OPENROUTER_API_KEY`; no key is written to disk.
+
+To configure an existing workspace manually, use the template instead:
+
 Windows PowerShell：
 
 ```powershell
@@ -228,6 +250,24 @@ To print the installed DevMesh version without loading a configuration file:
 ```bash
 java -jar ./build/libs/devmesh.jar --version
 ```
+
+### Local chat management
+
+DevMesh can manage local SQLite-backed chats without loading provider
+configuration:
+
+```bash
+devmesh chat new "Fix authentication" --workspace /path/to/project
+devmesh chat list --workspace /path/to/project
+devmesh chat search authentication --workspace /path/to/project
+devmesh chat rename <session-id> "New title" --workspace /path/to/project
+devmesh chat archive <session-id> --workspace /path/to/project
+devmesh chat delete <session-id> --workspace /path/to/project
+```
+
+The default database is `.devmesh/devmesh.db`. See
+[Persistence and Chat Management](docs/persistence-chat-management.md) for
+schema, migration, transaction, and compatibility details.
 
 ### Demo
 

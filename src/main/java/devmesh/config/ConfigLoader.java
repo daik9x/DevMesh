@@ -119,6 +119,9 @@ public class ConfigLoader {
         if (override.getCheckpoint() != null) {
             base.setCheckpoint(override.getCheckpoint());
         }
+        if (override.getPersistence() != null) {
+            base.setPersistence(override.getPersistence());
+        }
         if (override.isEnableCoordinatorMode()) {
             base.setEnableCoordinatorMode(true);
         }

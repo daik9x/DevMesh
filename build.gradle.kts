@@ -39,6 +39,7 @@ dependencies {
     // Config & JSON
     implementation("org.yaml:snakeyaml:2.2")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.21.3")
+    implementation("org.xerial:sqlite-jdbc:3.46.1.3")
 
     // Test
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")

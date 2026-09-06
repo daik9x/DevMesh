@@ -10,6 +10,8 @@ import devmesh.observability.TraceAnalyzer;
 import devmesh.observability.TraceEvaluator;
 import devmesh.evolution.SkillEvolutionCli;
 import devmesh.evaluation.BenchmarkCli;
+import devmesh.persistence.ChatCli;
+import devmesh.config.InitCli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -36,6 +38,12 @@ public class DevMesh {
             return;
         }
 
+        Integer initExit = InitCli.tryRun(args);
+        if (initExit != null) {
+            if (initExit != 0) System.exit(initExit);
+            return;
+        }
+
         Integer evolutionExit = SkillEvolutionCli.tryRun(args);
         if (evolutionExit != null) {
             if (evolutionExit != 0) System.exit(evolutionExit);
@@ -45,6 +53,12 @@ public class DevMesh {
         Integer benchmarkExit = BenchmarkCli.tryRun(args);
         if (benchmarkExit != null) {
             if (benchmarkExit != 0) System.exit(benchmarkExit);
+            return;
+        }
+
+        Integer chatExit = ChatCli.tryRun(args);
+        if (chatExit != null) {
+            if (chatExit != 0) System.exit(chatExit);
             return;
         }
 
@@ -223,6 +237,7 @@ public class DevMesh {
         System.out.println("Usage: java -jar devmesh.jar [config.yaml] [options]");
         System.out.println();
         System.out.println("Options:");
+        System.out.println("      init [--workspace <path>]         Initialize a DevMesh workspace");
         System.out.println("  -h, --help                         Show this help message");
         System.out.println("  -V, --version                      Show the DevMesh version");
         System.out.println("  -p, -p=<prompt>                    Run a one-shot prompt");
