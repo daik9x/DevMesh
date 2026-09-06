@@ -1356,7 +1356,8 @@ public class DevMeshModel implements Model {
                     default -> "○";
                 };
                 var style = i == todoPopupCursor ? Styles.selectedItem : Styles.normalItem;
-                sb.append(style.render("  │ " + marker + " " + task.getSubject())).append("\n");
+                String subject = TuiLayout.clip(task.getSubject(), Math.max(12, width - 12));
+                sb.append(style.render("  │ " + marker + " " + subject)).append("\n");
             }
         }
         long completed = tasks.stream().filter(t -> TaskList.Status.COMPLETED.value().equals(t.getStatus())).count();
@@ -2708,12 +2709,14 @@ public class DevMeshModel implements Model {
         };
         sb.append(Styles.selectLabel.render("  ┌─ " + title + " ─────────────────────┐")).append("\n");
         if ("mode".equals(runtimePopupKind) || "thinking".equals(runtimePopupKind)) {
-            sb.append(Styles.toolDetail.render("  │ Model: " + (selectedProvider == null ? "unknown" : selectedProvider.getModel()))).append("\n");
+            String model = TuiLayout.clip(selectedProvider == null ? "unknown" : selectedProvider.getModel(), Math.max(12, width - 14));
+            sb.append(Styles.toolDetail.render("  │ Model: " + model)).append("\n");
         }
         for (int i = 0; i < runtimePopupOptions.size(); i++) {
             String marker = i == runtimePopupCursor ? "❯ " : "  ";
             var style = i == runtimePopupCursor ? Styles.selectedItem : Styles.normalItem;
-            sb.append(style.render("  │ " + marker + runtimePopupOptions.get(i))).append("\n");
+            String option = TuiLayout.clip(runtimePopupOptions.get(i), Math.max(12, width - 12));
+            sb.append(style.render("  │ " + marker + option)).append("\n");
         }
         sb.append(Styles.toolDetail.render("  └────────────────────────────────────┘")).append("\n");
         return sb.toString();
@@ -3005,6 +3008,7 @@ public class DevMeshModel implements Model {
                     desc = desc.substring(0, desc.offsetByCodePoints(0, 28)) + "…";
                 }
                 String label = String.format("  /%-16s — %s", cmdItem.name(), desc);
+                label = TuiLayout.clip(label, Math.max(12, width - 1));
                 var style = i == slashCursor ? Styles.selectedItem : Styles.normalItem;
                 sb.append(style.render(label));
                 sb.append("\n");
@@ -3016,7 +3020,7 @@ public class DevMeshModel implements Model {
             for (int i = 0; i < atMatches.size() && i < 8; i++) {
                 String marker = i == atCursor ? " ❯ " : "   ";
                 var style = i == atCursor ? Styles.selectedItem : Styles.normalItem;
-                sb.append(style.render(marker + "@" + atMatches.get(i)));
+                sb.append(style.render(TuiLayout.clip(marker + "@" + atMatches.get(i), Math.max(12, width - 1))));
                 sb.append("\n");
             }
         }
@@ -3086,14 +3090,19 @@ public class DevMeshModel implements Model {
             rightParts.append(Styles.statusItem.render(" · " + runtimeLabel));
         }
 
-        int leftLen = modeStr.length() + 2 + (permChecker != null
-                && permChecker.getMode() != PermissionMode.DEFAULT ? 12 : 0)
-                + teammateStr.length();
-        int rightLen = (mcpConnecting ? 17 : 0) + modelStr.length() + runtimeLabel.length() + (runtimeLabel.isEmpty() ? 0 : 3);
-        int gap = Math.max(width - leftLen - rightLen - 2, 2);
-        sb.append(left);
-        sb.append(" ".repeat(gap));
-        sb.append(rightParts);
+        String leftPlain = "  " + modeStr + "  [" + inputModeLabel + "]"
+            + (permChecker != null && permChecker.getMode() != PermissionMode.DEFAULT ? " (shift+tab)" : "")
+            + teammateStr;
+        String rightPlain = (mcpConnecting ? "MCP connecting… " : "") + modelStr
+            + (runtimeLabel.isEmpty() ? "" : " · " + runtimeLabel);
+        if (width < 56) rightPlain = "";
+        String status = TuiLayout.statusLine(leftPlain, rightPlain, width);
+        if (!rightPlain.isEmpty() && status.contains(rightPlain)) {
+            int gap = Math.max(1, status.length() - leftPlain.length() - rightPlain.length());
+            sb.append(left).append(" ".repeat(gap)).append(rightParts);
+        } else {
+            sb.append(Styles.statusItem.render(TuiLayout.clip(leftPlain, Math.max(20, width))));
+        }
         sb.append("\n");
 
 
