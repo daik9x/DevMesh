@@ -83,6 +83,15 @@ tasks.register<JavaExec>("engineeringValidation") {
     )
 }
 
+tasks.register<JavaExec>("benchmark") {
+    group = "verification"
+    description = "Run isolated deterministic Agent Evaluation benchmarks"
+    dependsOn(tasks.classes)
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("devmesh.evaluation.BenchmarkCli")
+    args("benchmark")
+}
+
 tasks.distZip { dependsOn(tasks.shadowJar) }
 tasks.distTar { dependsOn(tasks.shadowJar) }
 tasks.startScripts { dependsOn(tasks.shadowJar) }

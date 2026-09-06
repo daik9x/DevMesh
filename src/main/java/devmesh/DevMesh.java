@@ -9,6 +9,7 @@ import devmesh.tui.DevMeshModel;
 import devmesh.observability.TraceAnalyzer;
 import devmesh.observability.TraceEvaluator;
 import devmesh.evolution.SkillEvolutionCli;
+import devmesh.evaluation.BenchmarkCli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -38,6 +39,12 @@ public class DevMesh {
         Integer evolutionExit = SkillEvolutionCli.tryRun(args);
         if (evolutionExit != null) {
             if (evolutionExit != 0) System.exit(evolutionExit);
+            return;
+        }
+
+        Integer benchmarkExit = BenchmarkCli.tryRun(args);
+        if (benchmarkExit != null) {
+            if (benchmarkExit != 0) System.exit(benchmarkExit);
             return;
         }
 
