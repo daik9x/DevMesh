@@ -31,24 +31,24 @@
   "tool_schema_benchmark" : [ {
     "after_discovering_six" : {
       "canonical_json_characters" : 16755,
-      "estimated_token_reduction_vs_eager_percent" : 2.31,
+      "estimated_token_reduction_vs_eager_percent" : 9.11,
       "estimated_tokens" : 4189,
       "schema_count" : 19
     },
-    "deferred_tool_names" : [ "AskUserQuestion", "EnterWorktree", "ExitWorktree", "ProposeSkillCandidate", "TaskCreate", "TaskGet", "TaskList", "TaskUpdate" ],
-    "deferred_tools" : 8,
+    "deferred_tool_names" : [ "AskUserQuestion", "CopyFile", "CreateDirectory", "DeleteFile", "EnterWorktree", "ExitWorktree", "FileInfo", "HashFile", "MoveFile", "ProposeSkillCandidate", "TaskCreate", "TaskGet", "TaskList", "TaskUpdate" ],
+    "deferred_tools" : 14,
     "discovered_tools" : [ "AskUserQuestion", "EnterWorktree", "ExitWorktree", "ProposeSkillCandidate", "TaskCreate", "TaskUpdate" ],
     "discovery_query" : "select:AskUserQuestion,EnterWorktree,ExitWorktree,ProposeSkillCandidate,TaskCreate,TaskUpdate",
     "eager_baseline" : {
-      "canonical_json_characters" : 17152,
-      "estimated_tokens" : 4288,
-      "schema_count" : 21
+      "canonical_json_characters" : 18434,
+      "estimated_tokens" : 4609,
+      "schema_count" : 27
     },
     "protocol" : "anthropic",
-    "registered_tools" : 21,
+    "registered_tools" : 27,
     "resident" : {
       "canonical_json_characters" : 11902,
-      "estimated_token_reduction_vs_eager_percent" : 30.6,
+      "estimated_token_reduction_vs_eager_percent" : 35.43,
       "estimated_tokens" : 2976,
       "schema_count" : 13
     },
@@ -57,24 +57,24 @@
   }, {
     "after_discovering_six" : {
       "canonical_json_characters" : 17059,
-      "estimated_token_reduction_vs_eager_percent" : 2.45,
+      "estimated_token_reduction_vs_eager_percent" : 9.58,
       "estimated_tokens" : 4265,
       "schema_count" : 19
     },
-    "deferred_tool_names" : [ "AskUserQuestion", "EnterWorktree", "ExitWorktree", "ProposeSkillCandidate", "TaskCreate", "TaskGet", "TaskList", "TaskUpdate" ],
-    "deferred_tools" : 8,
+    "deferred_tool_names" : [ "AskUserQuestion", "CopyFile", "CreateDirectory", "DeleteFile", "EnterWorktree", "ExitWorktree", "FileInfo", "HashFile", "MoveFile", "ProposeSkillCandidate", "TaskCreate", "TaskGet", "TaskList", "TaskUpdate" ],
+    "deferred_tools" : 14,
     "discovered_tools" : [ "AskUserQuestion", "EnterWorktree", "ExitWorktree", "ProposeSkillCandidate", "TaskCreate", "TaskUpdate" ],
     "discovery_query" : "select:AskUserQuestion,EnterWorktree,ExitWorktree,ProposeSkillCandidate,TaskCreate,TaskUpdate",
     "eager_baseline" : {
-      "canonical_json_characters" : 17488,
-      "estimated_tokens" : 4372,
-      "schema_count" : 21
+      "canonical_json_characters" : 18866,
+      "estimated_tokens" : 4717,
+      "schema_count" : 27
     },
     "protocol" : "openai-compat",
-    "registered_tools" : 21,
+    "registered_tools" : 27,
     "resident" : {
       "canonical_json_characters" : 12110,
-      "estimated_token_reduction_vs_eager_percent" : 30.74,
+      "estimated_token_reduction_vs_eager_percent" : 35.81,
       "estimated_tokens" : 3028,
       "schema_count" : 13
     },

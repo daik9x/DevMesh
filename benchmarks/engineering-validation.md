@@ -10,12 +10,12 @@ The baseline discovers all 21 built-in tools in interactive mode and injects all
 
 | Protocol | Scenario | Schema count | JSON characters | Estimated tokens | Reduction vs. full |
 | --- | --- | ---: | ---: | ---: | ---: |
-| anthropic | Full baseline | 21 | 17152 | 4288 | — |
-| anthropic | Cold-start resident | 13 | 11902 | 2976 | 30.6% |
-| anthropic | After discovering six deferred tools | 19 | 16755 | 4189 | 2.31% |
-| openai-compat | Full baseline | 21 | 17488 | 4372 | — |
-| openai-compat | Cold-start resident | 13 | 12110 | 3028 | 30.74% |
-| openai-compat | After discovering six deferred tools | 19 | 17059 | 4265 | 2.45% |
+| anthropic | Full baseline | 27 | 18434 | 4609 | — |
+| anthropic | Cold-start resident | 13 | 11902 | 2976 | 35.43% |
+| anthropic | After discovering six deferred tools | 19 | 16755 | 4189 | 9.11% |
+| openai-compat | Full baseline | 27 | 18866 | 4717 | — |
+| openai-compat | Cold-start resident | 13 | 12110 | 3028 | 35.81% |
+| openai-compat | After discovering six deferred tools | 19 | 17059 | 4265 | 9.58% |
 
 ## 2. 50-turn context compaction
 

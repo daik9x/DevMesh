@@ -113,8 +113,8 @@ public final class EngineeringValidationBenchmark {
         System.out.println(protocol + " registered tools: "
                 + eagerRegistry.listTools().stream().map(tool -> tool.name()).sorted().toList());
         System.out.println(protocol + " deferred tools: " + deferredNames);
-        ensure(eagerRegistry.listTools().size() == 21, "Expected 21 interactive built-in tools");
-        ensure(deferredNames.size() == 8, "Expected 8 deferred built-in tools");
+        ensure(eagerRegistry.listTools().size() == 27, "Expected 27 interactive built-in tools");
+        ensure(deferredNames.size() == 14, "Expected 14 deferred built-in tools");
         ensure(deferredNames.containsAll(DISCOVERY_SCENARIO), "Discovery scenario must contain deferred tools only");
 
         discover(discoveredRegistry, DISCOVERY_SCENARIO);
@@ -126,7 +126,7 @@ public final class EngineeringValidationBenchmark {
 
         ensure(resident.schemaCount() == 13, "Expected 13 resident schemas");
         ensure(discovered.schemaCount() == 19, "Expected 19 schemas after discovering six deferred tools");
-        ensure(eager.schemaCount() == 21, "Expected all 21 schemas in eager baseline");
+        ensure(eager.schemaCount() == 27, "Expected all 27 schemas in eager baseline");
 
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("protocol", protocol);

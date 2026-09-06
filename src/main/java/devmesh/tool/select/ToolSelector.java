@@ -58,6 +58,15 @@ public final class ToolSelector {
         score += capability.reliability() / 5;
         score -= capability.estimatedCost() * 2;
         score -= failures.getOrDefault(capability.name(), 0) * 12;
+        score += switch (capability.implementationType()) {
+            case NATIVE -> 18;
+            case LIBRARY -> 12;
+            case EXECUTABLE -> 4;
+            case MCP -> 0;
+            case SHELL -> -12;
+        };
+        if (capability.structuredOutput()) score += 6;
+        if (capability.requiresShell()) score -= 8;
         if (request.intent() == ToolIntent.SEARCH_SYMBOL && repository != null
                 && !repository.search(String.valueOf(request.arguments().getOrDefault("query", "")), AnalysisDepth.STANDARD).isEmpty()
                 && "Grep".equals(capability.name())) score -= 20;

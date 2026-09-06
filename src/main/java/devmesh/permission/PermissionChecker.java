@@ -100,14 +100,13 @@ public class PermissionChecker {
             Pattern.compile(">\\s*/dev/sd")
     );
 
-    private static final Map<String, String> CONTENT_FIELDS = Map.of(
-            "Bash", "command",
-            "ReadFile", "file_path",
-            "WriteFile", "file_path",
-            "EditFile", "file_path",
-            "Glob", "pattern",
-            "Grep", "pattern"
-    );
+        private static final Map<String, String> CONTENT_FIELDS = Map.ofEntries(
+            Map.entry("Bash", "command"), Map.entry("ReadFile", "file_path"),
+            Map.entry("WriteFile", "file_path"), Map.entry("EditFile", "file_path"),
+            Map.entry("CreateDirectory", "path"), Map.entry("CopyFile", "source"),
+            Map.entry("MoveFile", "source"), Map.entry("DeleteFile", "path"),
+            Map.entry("HashFile", "path"), Map.entry("FileInfo", "path"),
+            Map.entry("Glob", "pattern"), Map.entry("Grep", "pattern"));
 
     private static final List<String> DEFAULT_DENY_WRITE = List.of(
             ".devmesh/config.yaml",
@@ -383,11 +382,11 @@ public class PermissionChecker {
     }
 
     private boolean isPathTool(String toolName) {
-        return "ReadFile".equals(toolName) || "WriteFile".equals(toolName) || "EditFile".equals(toolName);
+        return Set.of("ReadFile", "WriteFile", "EditFile", "CreateDirectory", "CopyFile", "MoveFile", "DeleteFile", "HashFile", "FileInfo").contains(toolName);
     }
 
     private boolean isWritePathTool(String toolName) {
-        return "WriteFile".equals(toolName) || "EditFile".equals(toolName);
+        return Set.of("WriteFile", "EditFile", "CreateDirectory", "CopyFile", "MoveFile", "DeleteFile").contains(toolName);
     }
 
     /**
