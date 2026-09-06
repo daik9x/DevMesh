@@ -18,13 +18,13 @@ jobs:
         include:
           - platform: linux-x64
             os: ubuntu-24.04
-            archive: devmesh-jdk21-linux-x64.tar.gz
+            task: packageLinuxX64
           - platform: windows-x64
             os: windows-2022
-            archive: devmesh-jdk21-windows-x64.zip
+            task: packageWindowsX64
           - platform: macos-x64
             os: macos-13
-            archive: devmesh-jdk21-macos-x64.tar.gz
+            task: packageMacosX64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -40,65 +40,22 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
 
-      - name: Test and build JAR on Unix
+      - name: Build and package on Unix
         if: runner.os != 'Windows'
-        run: ./gradlew test shadowJar
+        run: ./gradlew ${{ matrix.task }}
 
-      - name: Test and build JAR on Windows
+      - name: Build and package on Windows
         if: runner.os == 'Windows'
         shell: pwsh
-        run: .\gradlew.bat test shadowJar
-
-      - name: Build Linux/macOS Java 21 runtime
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          rm -rf release-runtime release-bundle
-          jlink \
-            --add-modules java.base,java.compiler,java.desktop,java.instrument,java.management,java.naming,java.net.http,java.security.jgss,java.sql,jdk.unsupported \
-            --strip-debug \
-            --no-man-pages \
-            --no-header-files \
-            --compress=2 \
-            --output release-runtime
-          mkdir -p release-bundle/bin release-bundle/runtime
-          cp build/libs/devmesh.jar release-bundle/devmesh.jar
-          cp bin/devmesh bin/devmesh.ps1 release-bundle/bin/
-          cp -R release-runtime/. release-bundle/runtime/
-          chmod +x release-bundle/bin/devmesh
-          tar -czf "${{ matrix.archive }}" -C release-bundle .
-
-      - name: Build Windows Java 21 runtime
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if (Test-Path release-runtime) { Remove-Item release-runtime -Recurse -Force }
-          if (Test-Path release-bundle) { Remove-Item release-bundle -Recurse -Force }
-          jlink.exe `
-            --add-modules java.base,java.compiler,java.desktop,java.instrument,java.management,java.naming,java.net.http,java.security.jgss,java.sql,jdk.unsupported `
-            --strip-debug `
-            --no-man-pages `
-            --no-header-files `
-            --compress=2 `
-            --output release-runtime
-          New-Item -ItemType Directory -Force -Path release-bundle\bin, release-bundle\runtime | Out-Null
-          Copy-Item build\libs\devmesh.jar release-bundle\devmesh.jar
-          Copy-Item bin\devmesh.bat, bin\devmesh.ps1 release-bundle\bin\
-          Copy-Item release-runtime\* release-bundle\runtime\ -Recurse
-          Compress-Archive -Path release-bundle\* -DestinationPath "${{ matrix.archive }}"
+        run: .\gradlew.bat ${{ matrix.task }}
 
       - name: Upload runtime bundle
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}
-          path: ${{ matrix.archive }}
-
-      - name: Upload JAR
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: devmesh-jar
-          path: build/libs/devmesh.jar
+          path: |
+            build/release/DevMesh-*-${{ matrix.platform }}.*
+            build/release/SHA256SUMS-${{ matrix.platform }}.txt
 
   release:
     needs: build-runtime
@@ -112,6 +69,10 @@ jobs:
         with:
           path: release-assets
           merge-multiple: true
+
+      - name: Generate aggregate checksums
+        working-directory: release-assets
+        run: sha256sum DevMesh-*.zip DevMesh-*.tar.gz > SHA256SUMS.txt
 
       - name: Publish GitHub release
         env:

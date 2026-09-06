@@ -274,6 +274,7 @@ schema, migration, transaction, and compatibility details.
 The repository includes a reproducible, approximately 10-minute demo covering the build, Web interaction, Trace Eval, and Verified Skill Evolution:
 
 - [DevMesh demo guide](examples/demo-guide.md)
+- [Cross-platform release packaging](docs/release-packaging.md)
 
 ## Trace analysis and quality gates
 
